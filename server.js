@@ -17,7 +17,6 @@ async function initializeDatabase() {
         driver: sqlite3.Database
     });
 
-    // Kullanıcılar Tablosu
     await db.exec(`
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +25,6 @@ async function initializeDatabase() {
         )
     `);
 
-    // Konteynerler/Talepler Tablosu
     await db.exec(`
         CREATE TABLE IF NOT EXISTS containers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +39,12 @@ async function initializeDatabase() {
     console.log("SQLite Veritabanı ve Tablolar Hazır!");
 }
 
-// 1. Kayıt Olma Endpoint'i (API Adresi)
+// Ana sayfa karşılama mesajı
+app.get('/', (req, res) => {
+    res.send("<h1>UKİS Sistemi API Sunucusu Aktif!</h1><p>Sistem başarıyla çalışıyor.</p>");
+});
+
+// 1. Kayıt Olma
 app.post('/api/register', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -52,7 +55,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// 2. Giriş Yapma Endpoint'i
+// 2. Giriş Yapma
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     const user = await db.get('SELECT * FROM users WHERE username = ? AND password = ?', [username, password]);
@@ -64,7 +67,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 3. Konteyner/Talep Ekleme Endpoint'i
+// 3. Konteyner Ekleme
 app.post('/api/containers', async (req, res) => {
     const { user_id, container_no, status, description } = req.body;
     await db.run(
@@ -74,14 +77,14 @@ app.post('/api/containers', async (req, res) => {
     res.json({ success: true, message: "Konteyner başarıyla eklendi!" });
 });
 
-// 4. Konteynerleri/Talepleri Listeleme Endpoint'i
+// 4. Konteyner Listeleme
 app.get('/api/containers/:user_id', async (req, res) => {
     const { user_id } = req.params;
     const containers = await db.all('SELECT * FROM containers WHERE user_id = ?', [user_id]);
     res.json(containers);
 });
 
-// Sunucuyu dinamik portta başlat (Render gibi bulut sistemleri için gerekli)
+// Sunucuyu başlat
 const PORT = process.env.PORT || 5000;
 initializeDatabase().then(() => {
     app.listen(PORT, () => {
